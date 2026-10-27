@@ -4,6 +4,7 @@ pub mod device;
 mod invite_filter;
 mod keys;
 mod ldap;
+mod password;
 mod register;
 mod server_user;
 #[cfg(test)]

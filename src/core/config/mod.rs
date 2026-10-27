@@ -1154,6 +1154,33 @@ pub struct Config {
 	#[serde(default = "default_argon2_p_cost")]
 	pub argon2_p_cost: u32,
 
+	/// The pepper of bcrypt password hashes imported from another server:
+	/// Synapse's `password_config.pepper`, or the `secret` of a Matrix
+	/// Authentication Service bcrypt password scheme.
+	///
+	/// Imported accounts keep their bcrypt hashes until their next successful
+	/// password check, which re-hashes them with Argon2id. Until then those
+	/// checks need the pepper the hashes were made with. Leave this unset if
+	/// there was none.
+	///
+	/// reloadable: yes
+	///
+	/// display: sensitive
+	pub imported_bcrypt_pepper: Option<String>,
+
+	/// The `secret` of a Matrix Authentication Service Argon2id password
+	/// scheme whose hashes were imported here.
+	///
+	/// Such hashes verify only with the secret. Each is re-hashed without it
+	/// on its next successful password check. Only hashes the importer marked
+	/// as keyed are checked with it, so other accounts don't pay for a second
+	/// check. Leave this unset if no MAS scheme had a secret.
+	///
+	/// reloadable: yes
+	///
+	/// display: sensitive
+	pub imported_argon2_secret: Option<String>,
+
 	/// Controls whether encrypted rooms and events are allowed.
 	/// reloadable: yes
 	#[serde(default = "true_fn")]

@@ -6,7 +6,7 @@ use ruma::{
 		uiaa,
 	},
 };
-use tuwunel_core::{Err, Result, debug_error, err, utils::hash::verify_password};
+use tuwunel_core::{Err, Result, debug_error, err};
 use tuwunel_service::Services;
 
 use super::ldap_login;
@@ -114,7 +114,10 @@ pub(super) async fn password_login(
 		return Err!(Request(UserDeactivated("The user has been deactivated")));
 	}
 
-	verify_password(password, &hash)
+	services
+		.users
+		.verify_and_upgrade_password(user_id, password, &hash)
+		.await
 		.inspect_err(|e| debug_error!("{e}"))
 		.map_err(|_| wrong())?;
 
