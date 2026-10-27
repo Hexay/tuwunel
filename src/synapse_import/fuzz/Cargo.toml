@@ -1,0 +1,89 @@
+[package]
+name = "tuwunel_synapse_import_fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+arbitrary = { version = "1", features = ["derive"] }
+libfuzzer-sys = "0.4"
+serde_json = "1"
+tuwunel_synapse_import = { path = "..", features = ["fuzzing"] }
+
+[profile.release]
+debug = 1
+
+# A workspace of its own, so the main one never sees libFuzzer or its build
+# flags. Cargo.lock started as a copy of the root's, and the patches below
+# mirror the root Cargo.toml's that reach the importer.
+[workspace]
+members = ["."]
+
+[patch.crates-io.event-listener]
+git = "https://github.com/matrix-construct/event-listener"
+rev = "f2a3389999cbcb2bdda52dbf5493635a027e7d94"
+
+[patch.crates-io.async-channel]
+git = "https://github.com/matrix-construct/async-channel"
+rev = "debb93f14a20fa7c1989042c2f07f53654d75908"
+
+[patch.crates-io.core_affinity]
+git = "https://github.com/matrix-construct/core_affinity_rs"
+rev = "ff148c2985cbaff3e6e953d45cda4d7696f38d75"
+
+[patch.crates-io.hyper-util]
+git = "https://github.com/matrix-construct/hyper-util"
+rev = "0510e3a3cba7aedd504b4ee0d69fbf41e76a524f"
+
+[patch.crates-io.resolv-conf]
+git = "https://github.com/matrix-construct/resolv-conf"
+rev = "ab5c3e44016bc76b8798ec837a5a9cf9d88bf233"
+
+[patch.crates-io.rustls-platform-verifier]
+git = "https://github.com/matrix-construct/rustls-platform-verifier"
+rev = "c68093b6ac7d739e6b3aefb809c646a5e0210306"
+
+[[bin]]
+name = "event_row"
+path = "fuzz_targets/event_row.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "event_struct"
+path = "fuzz_targets/event_struct.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "redaction"
+path = "fuzz_targets/redaction.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "push_rule"
+path = "fuzz_targets/push_rule.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "synapse_config"
+path = "fuzz_targets/synapse_config.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "json_columns"
+path = "fuzz_targets/json_columns.rs"
+test = false
+doc = false
+bench = false

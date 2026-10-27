@@ -1,0 +1,3 @@
+global/override/.m.rule.master
+[]
+["dont_notify",{"set_tweak":"sound","value":1.5}]

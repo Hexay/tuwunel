@@ -1,0 +1,2 @@
+1
+{"type":"m.room.message","event_id":"$e:example.org","content":{"n":9007199254740993},"room_id":"!r:example.org","sender":"@a:example.org","origin":"example.org","origin_server_ts":1,"depth":18446744073709551615,"prev_events":[["$p:example.org",{"sha256":"aGFzaA"}]],"auth_events":[],"hashes":{"sha256":"aGFzaA"},"signatures":{}}

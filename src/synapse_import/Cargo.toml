@@ -17,6 +17,10 @@ crate-type = [
 #	"dylib",
 ]
 
+[features]
+# Exposes the fuzz module's entry points to the targets in fuzz/.
+fuzzing = []
+
 [dependencies]
 const-str.workspace = true
 futures.workspace = true

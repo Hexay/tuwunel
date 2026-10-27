@@ -1,0 +1,4 @@
+1
+!r:example.org
+$e:example.org
+{"event_id":"$e:example.org","content":{},"room_id":"!r:example.org","sender":"@a:example.org","origin":"example.org","origin_server_ts":1,"depth":1,"prev_events":[["$p:example.org",{"sha256":"aGFzaA"}]],"auth_events":[],"hashes":{"sha256":"aGFzaA"},"signatures":{}}

@@ -39,6 +39,9 @@ mod appservices;
 mod backups;
 mod config;
 mod crypto;
+#[cfg(any(feature = "fuzzing", test))]
+#[doc(hidden)]
+pub mod fuzz;
 mod identity;
 mod inbox;
 mod leftovers;

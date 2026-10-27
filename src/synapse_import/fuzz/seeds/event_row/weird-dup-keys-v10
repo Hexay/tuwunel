@@ -1,0 +1,4 @@
+10
+!r:example.org
+$x
+{"type":"m.room.message","type":"m.room.create","content":{},"room_id":"!r:example.org","sender":"@a:example.org","origin_server_ts":1,"depth":1,"prev_events":["$p"],"auth_events":[],"hashes":{"sha256":"aGFzaA"},"signatures":{}}

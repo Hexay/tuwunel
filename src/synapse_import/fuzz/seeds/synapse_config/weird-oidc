@@ -1,0 +1,8 @@
+server_name: example.org
+signing_key_path: k
+oidc_providers:
+  - idp_id: github
+    issuer: x
+    user_mapping_provider: {config: {subject_claim: id}}
+experimental_features: {msc3861: {enabled: true}}
+old_signing_keys: {'ed25519:a': {key: x, expired_ts: 18446744073709551615}}
