@@ -93,7 +93,7 @@ granted server admin.
 | conduwuit? | ✅ Yes. This will be supported at a minimum for one year, but likely indefinitely. |
 | A fork of conduwuit? | ✅ Yes. The database migrates in place on first boot. |
 | Conduit? | ✅ Yes. The RocksDB database migrates in place on first boot. |
-| Synapse? | ❌ Not yet, but this is planned and an important issue. Subscribe to [#2](https://github.com/matrix-construct/tuwunel/issues/2). |
+| Synapse? | ✅ Yes, 1.100 to 1.163 on PostgreSQL, with a build that has the `synapse_import` feature. See [Migrating from Synapse](docs/deploying/migrating-from-synapse.md). |
 | Any other Conduit fork? | ❌ No. The migration must be explicitly listed in this table. |
 > [!CAUTION]
 > **Always back up your database before migrating.** Migrating into Tuwunel from a source listed
