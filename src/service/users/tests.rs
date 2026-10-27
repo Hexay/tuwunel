@@ -2,7 +2,9 @@ use std::iter::once;
 
 use futures::{StreamExt, future::join, pin_mut, poll};
 use ruma::{
-	OneTimeKeyAlgorithm, OneTimeKeyId, UserId, device_id,
+	OneTimeKeyAlgorithm, OneTimeKeyId, UserId,
+	api::client::filter::FilterDefinition,
+	device_id,
 	encryption::OneTimeKey,
 	serde::{Base64, Raw, base64::Standard},
 	signatures::{Ed25519KeyPair, KeyPair, to_canonical_json_string_for_signing},
@@ -420,6 +422,29 @@ async fn device_removal_keeps_its_connections() -> Result {
 		.deserialized()?;
 
 	assert_eq!(stored.next_batch, next_batch);
+
+	Ok(())
+}
+
+#[tokio::test]
+async fn filter_set_under_chosen_id_replaces_it() -> Result {
+	let Some(fixture) = fixture(Figment::new()).await? else {
+		return Ok(());
+	};
+
+	let users = &fixture.services.users;
+	let user_id = user_id!("@filters:localhost");
+	let filter = |field: &str| FilterDefinition {
+		event_fields: Some(vec![field.to_owned()]),
+		..FilterDefinition::default()
+	};
+
+	users.set_filter(user_id, "42", &filter("type"));
+	users.set_filter(user_id, "42", &filter("content"));
+
+	let stored = users.get_filter(user_id, "42").await?;
+	assert_eq!(stored.event_fields, Some(vec!["content".to_owned()]));
+	users.get_filter(user_id, "43").await.unwrap_err();
 
 	Ok(())
 }
