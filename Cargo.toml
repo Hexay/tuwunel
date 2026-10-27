@@ -3,7 +3,7 @@
 [workspace]
 resolver = "2"
 members = ["src/*", "src/api/admin", "src/api/client", "src/api/federation", "src/api/mas", "src/api/oidc"]
-default-members = ["src/*", "src/api/admin", "src/api/client", "src/api/federation", "src/api/mas", "src/api/oidc"]
+default-members = ["src/admin", "src/api", "src/core", "src/database", "src/macros", "src/main", "src/matrix", "src/router", "src/service", "src/api/admin", "src/api/client", "src/api/federation", "src/api/mas", "src/api/oidc"]
 
 [workspace.package]
 authors = [
@@ -594,6 +594,11 @@ features = [
 [workspace.dependencies.tokio-metrics]
 version = "0.5"
 
+[workspace.dependencies.tokio-postgres]
+version = "0.7"
+default-features = false
+features = ["runtime"]
+
 [workspace.dependencies.toml]
 version = "1.0"
 default-features = false
@@ -744,6 +749,11 @@ default-features = false
 [workspace.dependencies.tuwunel-api-oidc]
 package = "tuwunel_api_oidc"
 path = "src/api/oidc"
+default-features = false
+
+[workspace.dependencies.tuwunel-synapse-import]
+package = "tuwunel_synapse_import"
+path = "src/synapse_import"
 default-features = false
 
 [workspace.dependencies.tuwunel-service]
