@@ -103,9 +103,27 @@ impl Service {
 			random_string(length)
 		});
 
-		let info = self.db.save_token(&token, expires).await?;
+		let info = self
+			.db
+			.save_token(&token, DatabaseTokenInfo::new(expires))
+			.await?;
 
 		Ok((token, info))
+	}
+
+	/// Creates a database-backed token whose use count starts at `uses`.
+	///
+	/// The token is stored verbatim; existing database tokens are rejected. A token stored with
+	/// `uses` at or above `max_uses` is invalid and is removed by the next check.
+	pub async fn create_token_with_uses(
+		&self,
+		token: &str,
+		uses: u64,
+		expires: TokenExpires,
+	) -> Result<DatabaseTokenInfo> {
+		self.db
+			.save_token(token, DatabaseTokenInfo { uses, expires })
+			.await
 	}
 
 	/// Returns a token's origin and stored metadata.
@@ -238,3 +256,6 @@ impl Service {
 		config_tokens.chain(db_tokens)
 	}
 }
+
+#[cfg(test)]
+mod tests;

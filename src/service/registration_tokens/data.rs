@@ -132,13 +132,13 @@ impl Data {
 		}
 	}
 
-	/// Stores a new registration token and its expiration policy.
+	/// Stores a new registration token with the given metadata.
 	///
-	/// The token begins with zero uses. A token already present in the database is rejected.
+	/// A token already present in the database is rejected.
 	pub(super) async fn save_token(
 		&self,
 		token: &str,
-		expires: TokenExpires,
+		info: DatabaseTokenInfo,
 	) -> Result<DatabaseTokenInfo> {
 		if self
 			.registrationtoken_info
@@ -146,8 +146,6 @@ impl Data {
 			.await
 			.is_err()
 		{
-			let info = DatabaseTokenInfo::new(expires);
-
 			self.registrationtoken_info
 				.raw_put(token, Json(&info));
 
