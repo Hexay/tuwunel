@@ -29,6 +29,8 @@ use tuwunel_core::{
 };
 use tuwunel_database::{Deserialized, Json, Map};
 
+pub use self::keypair::read_synapse_key_file;
+
 /// Manages the local signing identity and cached remote verification keys.
 ///
 /// Cached keys are retained by key ID without enforcing `valid_until_ts` on
@@ -65,7 +67,8 @@ impl crate::Service for Service {
 	fn build(args: &crate::Args<'_>) -> Result<Arc<Self>> {
 		let minimum_valid = Duration::from_hours(1);
 
-		let (keypair, verify_keys) = keypair::init(args.db)?;
+		let signing_key_path = args.server.config.signing_key_path.as_deref();
+		let (keypair, verify_keys) = keypair::init(args.db, signing_key_path)?;
 		debug_assert!(verify_keys.len() == 1, "only one active verify_key supported");
 
 		Ok(Arc::new(Self {
