@@ -97,6 +97,11 @@ default-features = false
 version = "0.22"
 default-features = false
 
+[workspace.dependencies.bcrypt]
+version = "0.19"
+default-features = false
+features = ["alloc", "zeroize"]
+
 [workspace.dependencies.bytes]
 version = "1.11"
 
@@ -209,6 +214,11 @@ features = [
 	"http2",
 	"server",
 ]
+
+[workspace.dependencies.icu_normalizer]
+version = "2.3"
+default-features = false
+features = ["compiled_data"]
 
 [workspace.dependencies.image]
 version = "0.25"

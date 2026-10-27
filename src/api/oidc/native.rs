@@ -16,7 +16,7 @@ use tuwunel_core::{
 	config::IdentityProvider,
 	err,
 	smallstr::SmallString,
-	utils::{self, BoolExt, hash::verify_password, html::escape as html_escape},
+	utils::{self, BoolExt, html::escape as html_escape},
 };
 use tuwunel_service::{Services, users::Register};
 use url::Url;
@@ -346,7 +346,11 @@ async fn verify_credentials(
 		return Err(invalid());
 	}
 
-	verify_password(password, &hash).map_err(|_| invalid())?;
+	services
+		.users
+		.verify_and_upgrade_password(&user_id, password, &hash)
+		.await
+		.map_err(|_| invalid())?;
 
 	services
 		.login_ratelimit
