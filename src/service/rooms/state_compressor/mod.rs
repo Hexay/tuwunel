@@ -620,7 +620,7 @@ pub(crate) fn save_statediff(
 /// Both IDs use big-endian encoding so byte ordering follows numeric ordering.
 #[inline]
 #[must_use]
-pub(crate) fn compress_state_event(
+pub fn compress_state_event(
 	shortstatekey: ShortStateKey,
 	shorteventid: ShortEventId,
 ) -> CompressedStateEvent {
