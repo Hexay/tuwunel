@@ -33,6 +33,11 @@ fn main() -> Result {
 	let runtime = Runtime::new(Some(&args))?;
 	let server = Server::new(Some(&args), Some(&runtime))?;
 
+	#[cfg(feature = "synapse_import")]
+	if tuwunel::import::exec_if_requested(&server, &runtime, &args)? {
+		return Ok(());
+	}
+
 	tuwunel::exec(&server, runtime)?;
 
 	#[cfg(unix)]

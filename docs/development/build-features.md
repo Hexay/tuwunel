@@ -26,6 +26,7 @@ The `oidc`, `mas`, and `synapse_admin` surfaces can each be left out independent
 | `release_max_log_level` | Yes | Omit debug and trace logging from release builds. | Remove this feature to use those log levels in a release build. |
 | `sentry_telemetry` | Yes | Sentry error reporting and tracing integration. | Enable `sentry` and configure `sentry_endpoint`. |
 | `synapse_admin` | Yes | Synapse admin API, client account suspend and lock endpoints, and the client `whois` alias. | Most endpoints require an administrator token; shared-secret registration requires `registration_shared_secret`. |
+| `synapse_import` | No | Import a stopped Synapse server into a new database with `--import-synapse`. | Synapse's PostgreSQL database; see [Migrating from Synapse](../deploying/migrating-from-synapse.md). |
 | `systemd` | Yes | Systemd readiness, watchdog, socket activation, journal logging, and configuration reload integration. | Linux and systemd; journal logging is controlled by `log_journald`. |
 | `tokio_console` | No | Tokio task instrumentation for tokio-console. | Build with `--cfg tokio_unstable`, enable `tokio_console` and `log_global_default`, and omit `release_max_log_level` for release builds. |
 | `tuwunel_mods` | No | Hot reloadable development modules. | Build with `--cfg tuwunel_mods` and provide loadable modules; see [Hot Reloading](hot_reload.md). |

@@ -5589,6 +5589,7 @@ dependencies = [
  "tuwunel_matrix",
  "tuwunel_router",
  "tuwunel_service",
+ "tuwunel_synapse_import",
 ]
 
 [[package]]
