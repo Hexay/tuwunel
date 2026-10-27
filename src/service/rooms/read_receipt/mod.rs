@@ -131,6 +131,23 @@ impl Service {
 		true
 	}
 
+	/// Stores a read receipt as `readreceipt_update` does, without delivering it
+	/// to appservices or flushing it to federation.
+	///
+	/// For receipts that were already delivered elsewhere, such as ones carried
+	/// over from another server. Returns whether the receipt was stored.
+	#[tracing::instrument(level = "debug", skip_all, fields(%room_id, %user_id))]
+	pub async fn readreceipt_store(
+		&self,
+		user_id: &UserId,
+		room_id: &RoomId,
+		event: &ReceiptEvent,
+	) -> bool {
+		self.db
+			.readreceipt_update(user_id, room_id, event)
+			.await
+	}
+
 	/// Whether a marker at `incoming` supersedes one stored at `current`, by
 	/// the ordering read receipts are gated on.
 	///
