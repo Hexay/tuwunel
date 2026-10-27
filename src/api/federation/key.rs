@@ -36,9 +36,22 @@ pub(crate) async fn get_server_keys_route(
 		.remove_entry(active_key_id)
 		.expect("active verify_key is missing");
 
+	let cached_old_keys = services
+		.server_keys
+		.signing_keys_for(server_name)
+		.await
+		.map(|keys| keys.old_verify_keys)
+		.unwrap_or_default();
+
 	let old_verify_keys = all_keys
 		.into_iter()
-		.map(|(id, key)| (id, OldVerifyKey::new(expires_ts(), key.key)))
+		.map(|(id, key)| {
+			let expired_ts = cached_old_keys
+				.get(&id)
+				.map_or_else(expires_ts, |old| old.expired_ts);
+
+			(id, OldVerifyKey::new(expired_ts, key.key))
+		})
 		.collect();
 
 	let server_key = ServerSigningKeys {

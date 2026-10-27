@@ -122,7 +122,7 @@ pub fn active_verify_key(&self) -> (&ServerSigningKeyId, &VerifyKey) {
 /// its signatures and validity timestamp are not preserved. The read, merge,
 /// and write sequence is not atomic.
 #[implement(Service)]
-async fn add_signing_keys(&self, new_keys: ServerSigningKeys) {
+pub async fn add_signing_keys(&self, new_keys: ServerSigningKeys) {
 	let origin = &new_keys.server_name;
 
 	// (timo) Not atomic, but this is not critical
