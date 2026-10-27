@@ -102,6 +102,51 @@ pub async fn set_dehydrated_device(&self, user_id: &UserId, request: Request) ->
 	Ok(())
 }
 
+/// Marks an existing, tokenless device as the user's dehydrated device. Unlike
+/// `set_dehydrated_device`, keys are not uploaded; the device keeps its own.
+///
+/// Refused when the user already has a different dehydrated device, whose
+/// frontage device would otherwise leak.
+#[implement(super::Service)]
+pub async fn set_dehydrated_device_data(
+	&self,
+	user_id: &UserId,
+	device_id: &DeviceId,
+	device_data: Raw<DehydratedDeviceData>,
+) -> Result {
+	if !self.device_exists(user_id, device_id).await {
+		return Err!(Request(NotFound("No device {device_id} for {user_id}.")));
+	}
+
+	if self
+		.db
+		.userdeviceid_token
+		.qry(&(user_id, device_id))
+		.await
+		.is_ok()
+	{
+		return Err!(Request(InvalidParam("Device {device_id} holds an access token.")));
+	}
+
+	if let Ok(existing_id) = self.get_dehydrated_device_id(user_id).await
+		&& device_id != existing_id
+	{
+		return Err!(Request(InvalidParam(
+			"{user_id} already has dehydrated device {existing_id}."
+		)));
+	}
+
+	self.db.userid_dehydrateddevice.raw_put(
+		user_id,
+		Json(&DehydratedDevice {
+			device_id: device_id.to_owned(),
+			device_data,
+		}),
+	);
+
+	Ok(())
+}
+
 /// Removes a user's dehydrated device.
 ///
 /// Calling this directly will remove the dehydrated data but leak the frontage
@@ -169,3 +214,6 @@ pub async fn get_dehydrated_device(&self, user_id: &UserId) -> Result<Dehydrated
 		.deserialized::<String>()
 		.and_then(|raw| serde_json::from_str(&raw).map_err(Into::into))
 }
+
+#[cfg(test)]
+mod tests;
