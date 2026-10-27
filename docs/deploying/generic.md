@@ -187,6 +187,11 @@ server name.**
 
 RocksDB is the only supported database backend.
 
+If this server name was served by Synapse before, copy Synapse's signing key
+file over and set `signing_key_path` to it before the first start, so other
+servers keep trusting this server's signatures. Make that file readable only
+by the tuwunel user.
+
 ## Setting the correct file permissions
 
 If you are using a dedicated user for Tuwunel, you will need to allow it to
