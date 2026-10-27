@@ -30,6 +30,9 @@ type StoredKeyVal<'a> = (StoredKey<'a>, Raw<KeyBackupData>);
 type StoredRoomKeyVal<'a> = ((Ignore, Ignore, Ignore, &'a str), Raw<KeyBackupData>);
 type VersionKey<'a> = (&'a UserId, &'a str);
 
+/// Bounds the sequence numbers `create_backup_with_version` spends, each a write.
+const MAX_VERSION_LEAD: u64 = 1 << 16;
+
 /// Stores and mutates versioned room key backups.
 ///
 /// Mutations take a per-user lock so concurrent update paths cannot interleave. Read operations
@@ -89,6 +92,49 @@ pub async fn create_backup(
 	txn.execute();
 
 	Ok(version_string)
+}
+
+/// Creates an empty backup under a version chosen by the caller.
+///
+/// Versions come from the global sequence, so it is first advanced past `version`, one number at
+/// a time; [`Self::create_backup`] then never allocates that version, even after a delete. An
+/// existing version, or one more than `MAX_VERSION_LEAD` ahead of the sequence, is refused.
+///
+/// # Panics
+///
+/// Panics when dispatching a global sequence number fails.
+#[implement(Service)]
+pub async fn create_backup_with_version(
+	&self,
+	user_id: &UserId,
+	version: u64,
+	backup_metadata: &Raw<BackupAlgorithm>,
+) -> Result {
+	let _backup_lock = self.mutex.lock(user_id).await;
+	let version_string = version.to_string();
+	let key = (user_id, &version_string);
+
+	if self.db.backupid_algorithm.qry(&key).await.is_ok() {
+		return Err!(Request(InvalidParam("Backup version {version} already exists.")));
+	}
+
+	let globals = &self.services.globals;
+	if version.saturating_sub(globals.pending_count().end) > MAX_VERSION_LEAD {
+		return Err!(Request(InvalidParam("Backup version {version} is too far ahead.")));
+	}
+
+	while globals.pending_count().end < version {
+		drop(globals.next_count());
+	}
+
+	let count = globals.next_count();
+	let mut txn = self.services.db.txn();
+
+	txn.put(&self.db.backupid_algorithm, key, Json(backup_metadata));
+	txn.put(&self.db.backupid_etag, key, *count);
+	txn.execute();
+
+	Ok(())
 }
 
 /// Deletes a backup version and its stored session keys.
@@ -580,3 +626,6 @@ pub async fn delete_room_key(
 
 	Ok((count, etag))
 }
+
+#[cfg(test)]
+mod tests;
