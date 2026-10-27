@@ -26,7 +26,7 @@ use tuwunel_core::{
 use tuwunel_database::{Cbor, Database, Deserialized, Ignore, Map};
 use url::Url;
 
-pub use self::adopt::Counts;
+pub use self::adopt::{Adoption, Counts};
 use super::{Provider, Providers, UserInfo, unique_id as session_unique_id};
 use crate::SelfServices;
 

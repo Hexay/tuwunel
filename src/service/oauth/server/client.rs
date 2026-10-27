@@ -54,21 +54,44 @@ pub struct ClientRegistration {
 
 #[implement(super::Server)]
 pub async fn register_client(&self, request: DcrRequest) -> Result<ClientRegistration> {
-	let request = normalize(request);
-	let serialized = serde_json::to_vec(&request).expect("DcrRequest is always serializable");
-
-	if serialized.len() > MAX_REGISTRATION_BYTES {
-		return Err!(Request(TooLarge(
-			"Client registration exceeds {MAX_REGISTRATION_BYTES} byte limit"
-		)));
-	}
-
+	let (request, serialized) = normalize_bounded(request)?;
 	let client_id = b64.encode(sha256::hash(&serialized));
 
 	if let Ok(existing) = self.get_client(&client_id).await {
 		return Ok(existing);
 	}
 
+	Ok(self.store_client(client_id, request))
+}
+
+/// Registers a client under a caller-chosen id, e.g. one carried over from another
+/// authorization server.
+///
+/// The request is normalized and size-capped as by `register_client`. An id already registered
+/// is refused.
+#[implement(super::Server)]
+pub async fn register_client_with_id(
+	&self,
+	client_id: &str,
+	request: DcrRequest,
+) -> Result<ClientRegistration> {
+	let (request, _) = normalize_bounded(request)?;
+
+	if self
+		.db
+		.oidcclientid_registration
+		.exists(client_id)
+		.await
+		.is_ok()
+	{
+		return Err!(Request(InvalidParam("Client {client_id} is already registered.")));
+	}
+
+	Ok(self.store_client(client_id.to_owned(), request))
+}
+
+#[implement(super::Server)]
+fn store_client(&self, client_id: String, request: DcrRequest) -> ClientRegistration {
 	let auth_method = request
 		.token_endpoint_auth_method
 		.unwrap_or_else(|| "none".to_owned());
@@ -103,7 +126,7 @@ pub async fn register_client(&self, request: DcrRequest) -> Result<ClientRegistr
 		.oidcclientid_registration
 		.raw_put(&*registration.client_id, Cbor(&registration));
 
-	Ok(registration)
+	registration
 }
 
 #[implement(super::Server)]
@@ -115,6 +138,21 @@ pub async fn get_client(&self, client_id: &str) -> Result<ClientRegistration> {
 		.deserialized::<Cbor<_>>()
 		.map(|cbor: Cbor<ClientRegistration>| cbor.0)
 		.map_err(|_| err!(Request(NotFound("Unknown client_id"))))
+}
+
+/// Normalizes a request and returns it with its serialized form, refusing one over
+/// `MAX_REGISTRATION_BYTES`.
+fn normalize_bounded(request: DcrRequest) -> Result<(DcrRequest, Vec<u8>)> {
+	let request = normalize(request);
+	let serialized = serde_json::to_vec(&request).expect("DcrRequest is always serializable");
+
+	if serialized.len() > MAX_REGISTRATION_BYTES {
+		return Err!(Request(TooLarge(
+			"Client registration exceeds {MAX_REGISTRATION_BYTES} byte limit"
+		)));
+	}
+
+	Ok((request, serialized))
 }
 
 fn normalize(mut request: DcrRequest) -> DcrRequest {

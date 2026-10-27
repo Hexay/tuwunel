@@ -4,10 +4,13 @@ use std::{
 };
 
 use futures::TryStreamExt;
-use ruma::user_id;
+use ruma::{UserId, user_id};
+use serde_json::{from_value, json};
 use tuwunel_core::{Result, config::Figment, result::NotFound};
 
-use super::{Deletions, Ratelimiter, Session, UserInfo, check_bucket_at};
+use super::{
+	Deletions, Provider, Ratelimiter, Session, UserInfo, check_bucket_at, sessions::Adoption,
+};
 use crate::test_utils::fixture;
 
 #[test]
@@ -171,6 +174,41 @@ async fn deleting_a_session_keeps_it_while_its_user_index_cannot_be_read() -> Re
 
 	assert!(deleted.is_err() && !deleted.is_missing(), "the unreadable index is an error");
 	assert!(kept.is_ok(), "the session is kept");
+
+	Ok(())
+}
+
+#[tokio::test]
+async fn adopting_a_subject_refuses_unusable_users_and_taken_keys() -> Result {
+	let Some(fixture) = fixture(Figment::new()).await? else {
+		return Ok(());
+	};
+
+	let services = &fixture.services;
+	let sessions = &services.oauth.sessions;
+	let provider: Provider = from_value(json!({
+		"brand": "keycloak",
+		"client_id": "tuwunel",
+		"issuer_url": "https://idp.example/",
+	}))?;
+
+	let (alice, bob) = (user_id!("@alice:localhost"), user_id!("@bob:localhost"));
+	services.users.create(alice, None, None).await?;
+	services.users.create(bob, None, None).await?;
+
+	let server_user: &UserId = &services.globals.server_user;
+	let nobody = user_id!("@nobody:localhost");
+	let adopt = async |user_id: &UserId| {
+		sessions
+			.adopt_subject(&provider, "s1", user_id)
+			.await
+	};
+
+	assert_eq!(adopt(server_user).await?, Adoption::Absent);
+	assert_eq!(adopt(nobody).await?, Adoption::Absent);
+	assert_eq!(adopt(alice).await?, Adoption::Adopted);
+	assert_eq!(adopt(alice).await?, Adoption::AlreadyBound);
+	assert_eq!(adopt(bob).await?, Adoption::Collision);
 
 	Ok(())
 }
